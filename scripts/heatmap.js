@@ -13,7 +13,6 @@
   var grid = document.getElementById('heatmap-grid');
   var monthEl = document.getElementById('heatmap-month');
   var summaryEl = document.getElementById('heatmap-summary');
-  var tooltip = document.getElementById('heatmap-tooltip');
 
   var now = new Date();
   var year = now.getFullYear();
@@ -40,26 +39,6 @@
 
   function setMonthLabel() {
     monthEl.textContent = year + ' 年 ' + (month + 1) + ' 月';
-  }
-
-  function positionTooltip(e) {
-    var rect = tooltip.getBoundingClientRect();
-    var x = e.clientX + 12;
-    var y = e.clientY + 12;
-    if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 12;
-    if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 12;
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-  }
-
-  function showTooltip(e, text) {
-    tooltip.textContent = text;
-    tooltip.style.display = 'block';
-    positionTooltip(e);
-  }
-
-  function hideTooltip() {
-    tooltip.style.display = 'none';
   }
 
   function showError() {
@@ -106,17 +85,6 @@
       if (day === today) {
         cell.classList.add('heatmap-today');
       }
-
-      cell.addEventListener('mouseenter', function (e) {
-        var text =
-          month + 1 + ' 月 ' + day + ' 日 · 完成 ' + completed + ' / 未完成 ' + incomplete;
-        if (completed === 0 && incomplete === 0) {
-          text = month + 1 + ' 月 ' + day + ' 日 · 无打卡';
-        }
-        showTooltip(e, text);
-      });
-      cell.addEventListener('mousemove', positionTooltip);
-      cell.addEventListener('mouseleave', hideTooltip);
 
       frag.appendChild(cell);
     }

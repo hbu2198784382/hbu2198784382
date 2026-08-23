@@ -107,18 +107,3 @@
   color: #aaa;
   text-align: center;
 }
-
-.heatmap-tooltip {
-  position: fixed;
-  z-index: 9999;
-  pointer-events: none;
-  display: none;
-  max-width: 240px;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
