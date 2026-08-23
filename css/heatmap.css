@@ -63,15 +63,15 @@
 }
 
 .heatmap-cell.heatmap-today {
-  outline: 1.5px solid #4285f4;
+  outline: 1.5px solid #7d97b5;
   outline-offset: 1px;
 }
 
 .heatmap-level-0 { background-color: #ebedf0; }
-.heatmap-level-1 { background-color: #c6dbef; }
-.heatmap-level-2 { background-color: #6baed6; }
-.heatmap-level-3 { background-color: #2171b5; }
-.heatmap-level-4 { background-color: #08306b; }
+.heatmap-level-1 { background-color: #dbe3ee; }
+.heatmap-level-2 { background-color: #b7c8da; }
+.heatmap-level-3 { background-color: #8ca4bf; }
+.heatmap-level-4 { background-color: #5f7a9c; }
 
 .heatmap-footer {
   display: flex;
