@@ -1,11 +1,11 @@
-/* 打卡热力图：拉取 mytodolist 的 dailytasks.json，渲染当月日历热力图
- * 算法：每日强度 = 完成任务 * 0.7 + 未完成任务 * 0.3（不展示任务名称）
+/* 打卡热力图：拉取 mytodolist 的 dailytasks/ 目录（每日一个 YYYY-MM-DD.json），
+ * 渲染当月日历热力图。算法：每日强度 = 完成任务 * 0.7 + 未完成任务 * 0.3（不展示任务名称）
  */
 (function () {
   'use strict';
 
-  var DATA_URL =
-    'https://raw.githubusercontent.com/hbu2198784382/mytodolist/main/dailytasks.json';
+  var LIST_URL =
+    'https://api.github.com/repos/hbu2198784382/mytodolist/contents/dailytasks';
 
   var root = document.getElementById('heatmap');
   if (!root) return;
@@ -23,6 +23,10 @@
   /* epochDay = 距 1970-01-01 的天数（UTC）。由本地年月日反推 epochDay。 */
   function localToEpochDay(y, m, d) {
     return Math.floor(Date.UTC(y, m, d) / 86400000);
+  }
+
+  function pad2(n) {
+    return (n < 10 ? '0' : '') + n;
   }
 
   /* 加权分 → 色阶（0~4） */
@@ -124,29 +128,50 @@
 
   setMonthLabel();
 
-  fetch(DATA_URL, { cache: 'no-store' })
+  /* 1) 列出 dailytasks 目录，筛出当月的每日文件（YYYY-MM-DD.json） */
+  fetch(LIST_URL, { cache: 'no-store' })
     .then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     })
-    .then(function (data) {
-      var tasks = (data && data.tasks) || [];
-      var checkins = (data && data.checkins) || [];
+    .then(function (files) {
+      if (!Array.isArray(files)) throw new Error('目录列表无效');
+      var prefix = year + '-' + pad2(month + 1) + '-';
+      var monthFiles = files.filter(function (f) {
+        return f.type === 'file' && f.name.indexOf(prefix) === 0;
+      });
+
+      /* 2) 并发拉取当月所有每日 JSON 文件 */
+      return Promise.all(
+        monthFiles.map(function (f) {
+          return fetch(f.download_url, { cache: 'no-store' }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          });
+        })
+      );
+    })
+    .then(function (dailyList) {
       var completedByDay = {};
       var incompleteByDay = {};
 
-      tasks.forEach(function (t) {
-        if (typeof t.epochDay !== 'number') return;
-        if (t.completed) {
-          completedByDay[t.epochDay] = (completedByDay[t.epochDay] || 0) + 1;
-        } else {
-          incompleteByDay[t.epochDay] = (incompleteByDay[t.epochDay] || 0) + 1;
-        }
-      });
+      dailyList.forEach(function (data) {
+        var tasks = (data && data.tasks) || [];
+        var checkins = (data && data.checkins) || [];
 
-      checkins.forEach(function (c) {
-        if (typeof c.epochDay !== 'number') return;
-        completedByDay[c.epochDay] = (completedByDay[c.epochDay] || 0) + 1;
+        tasks.forEach(function (t) {
+          if (typeof t.epochDay !== 'number') return;
+          if (t.completed) {
+            completedByDay[t.epochDay] = (completedByDay[t.epochDay] || 0) + 1;
+          } else {
+            incompleteByDay[t.epochDay] = (incompleteByDay[t.epochDay] || 0) + 1;
+          }
+        });
+
+        checkins.forEach(function (c) {
+          if (typeof c.epochDay !== 'number') return;
+          completedByDay[c.epochDay] = (completedByDay[c.epochDay] || 0) + 1;
+        });
       });
 
       render(completedByDay, incompleteByDay);
